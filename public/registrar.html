@@ -8,6 +8,7 @@
   <script src="js/main.js" defer></script>
 </head>
 <body data-pagina="registrar" data-protegida>
+  <a class="saltar" href="#conteudo">Saltar para o conteúdo</a>
 
   <header class="topo">
     <a class="marca" href="index.html">Gestão de alunos</a>
@@ -22,10 +23,15 @@
     </div>
   </header>
 
-  <main class="mesa">
+  <main class="mesa" id="conteudo" tabindex="-1">
     <div class="folha">
       <h1>Registar aluno</h1>
       <p class="intro">Preenche os dados do aluno. A ocorrência é opcional.</p>
+
+      <p class="nota nota--ok" id="sucesso" role="status" hidden>
+        <span id="sucessoTexto"></span>
+        <a id="sucessoFicha" href="pesquisar.html">Ver ficha</a>
+      </p>
 
       <form id="formRegistar" class="formulario" novalidate>
         <div class="campo" data-campo="nome">
@@ -54,6 +60,8 @@
           <p class="erro" hidden></p>
         </div>
 
+        <p class="info-turma" id="infoTurma" aria-live="polite"></p>
+
         <div class="campo campo--meio" data-campo="encarregado">
           <label for="r-encarregado">Número do encarregado</label>
           <input id="r-encarregado" name="encarregado" type="tel" inputmode="tel" autocomplete="off" placeholder="923 456 789" aria-describedby="r-encarregado-dica">
@@ -64,12 +72,20 @@
         <div class="campo" data-campo="ocorrencia">
           <label for="r-ocorrencia">Ocorrência ou problema na escola</label>
           <textarea id="r-ocorrencia" name="ocorrencia" maxlength="500" aria-describedby="r-ocorrencia-dica"></textarea>
-          <p class="dica" id="r-ocorrencia-dica">Opcional. Escreve o que aconteceu e quando. Máximo de 500 caracteres.</p>
+          <div class="linha-contador">
+            <p class="dica" id="r-ocorrencia-dica">Opcional. Escreve o que aconteceu e quando.</p>
+            <p class="dica contador" data-contador-de="r-ocorrencia" aria-hidden="true">0/500</p>
+          </div>
           <p class="erro" hidden></p>
         </div>
 
+        <label class="verifica" for="manter">
+          <input type="checkbox" id="manter" checked>
+          Manter a classe, turma e sala para o aluno seguinte
+        </label>
+
         <div class="accoes">
-          <button type="submit" class="btn">Registar aluno</button>
+          <button type="submit" class="btn" id="btnRegistar">Registar aluno</button>
           <a class="btn btn--secundario" href="pesquisar.html">Ver alunos registados</a>
         </div>
       </form>
