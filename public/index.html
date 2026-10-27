@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gestão de alunos</title>
+  <link rel="stylesheet" href="css/estilo.css">
+  <script src="js/main.js" defer></script>
+</head>
+<body data-pagina="index">
+
+  <header class="topo">
+    <a class="marca" href="index.html">Gestão de alunos</a>
+    <nav class="menu" id="menu" aria-label="Principal" hidden>
+      <a href="index.html" data-nav="index">Início</a>
+      <a href="registrar.html" data-nav="registrar">Registar aluno</a>
+      <a href="pesquisar.html" data-nav="pesquisar">Pesquisar alunos</a>
+    </nav>
+    <div class="sessao" id="sessao" hidden>
+      <span id="nomeCoordenador"></span>
+      <button type="button" class="btn btn--pequeno btn--sair" id="btnSair">Sair</button>
+    </div>
+  </header>
+
+  <main class="mesa">
+    <div class="folha">
+
+      <!-- Primeiro acesso: criar o coordenador -->
+      <section id="ecraCriar" class="ecra-estreito" hidden>
+        <h1>Criar acesso do coordenador</h1>
+        <p class="intro">Só o coordenador regista, pesquisa e altera os dados dos alunos. Escolhe o teu nome e um código de acesso.</p>
+
+        <form id="formCriar" class="formulario" novalidate>
+          <div class="campo" data-campo="nome">
+            <label for="c-nome">Nome do coordenador</label>
+            <input id="c-nome" name="nome" type="text" autocomplete="name" maxlength="60">
+            <p class="erro" hidden></p>
+          </div>
+          <div class="campo" data-campo="codigo">
+            <label for="c-codigo">Código de acesso</label>
+            <input id="c-codigo" name="codigo" type="password" autocomplete="new-password" maxlength="40">
+            <p class="dica">Pelo menos 4 caracteres.</p>
+            <p class="erro" hidden></p>
+          </div>
+          <div class="campo" data-campo="repetir">
+            <label for="c-repetir">Repetir o código</label>
+            <input id="c-repetir" name="repetir" type="password" autocomplete="new-password" maxlength="40">
+            <p class="erro" hidden></p>
+          </div>
+          <div class="accoes">
+            <button type="submit" class="btn">Criar acesso</button>
+          </div>
+        </form>
+
+        <details>
+          <summary>Este código protege os dados?</summary>
+          <p>Não de verdade. Neste protótipo tudo fica guardado no browser, por isso o código só separa o ecrã do coordenador. A protecção real passa a existir quando houver um servidor.</p>
+        </details>
+      </section>
+
+      <!-- Acessos seguintes: entrar -->
+      <section id="ecraEntrar" class="ecra-estreito" hidden>
+        <h1>Entrar como coordenador</h1>
+        <p class="intro">Escreve o teu código de acesso para gerir os alunos.</p>
+
+        <form id="formEntrar" class="formulario" novalidate>
+          <div class="campo" data-campo="codigo">
+            <label for="l-codigo">Código de acesso</label>
+            <input id="l-codigo" name="codigo" type="password" autocomplete="current-password" maxlength="40">
+            <p class="erro" hidden></p>
+          </div>
+          <div class="accoes">
+            <button type="submit" class="btn">Entrar</button>
+          </div>
+        </form>
+
+        <details>
+          <summary>Esqueci o código</summary>
+          <p>Podes apagar o acesso e criar um novo. Os dados dos alunos não são apagados.</p>
+          <button type="button" class="btn btn--secundario btn--pequeno" id="btnRepor">Apagar acesso</button>
+        </details>
+      </section>
+
+      <!-- Painel do coordenador -->
+      <section id="painel" hidden>
+        <h1>Painel do coordenador</h1>
+        <p class="intro">Regista alunos novos, pesquisa e altera os dados e as ocorrências.</p>
+
+        <ul class="numeros">
+          <li><strong id="nTotal">0</strong><span>alunos registados</span></li>
+          <li><strong id="nOcorrencias">0</strong><span>com ocorrência</span></li>
+          <li><strong id="nTurmas">0</strong><span>turmas com alunos</span></li>
+        </ul>
+
+        <div class="accoes">
+          <a class="btn" href="registrar.html">Registar aluno</a>
+          <a class="btn btn--secundario" href="pesquisar.html">Pesquisar alunos</a>
+        </div>
+
+        <div class="duas-colunas">
+          <section aria-labelledby="tituloOcorrencias">
+            <h2 id="tituloOcorrencias">Alunos com ocorrência</h2>
+            <ul class="lista-ocorrencias" id="listaOcorrencias"></ul>
+            <p class="dica" id="semOcorrencias" hidden>Nenhum aluno tem ocorrência registada.</p>
+            <a id="linkTodas" href="pesquisar.html?ocorrencia=1" hidden>Ver todos os alunos com ocorrência</a>
+          </section>
+
+          <section aria-labelledby="tituloFicheiro">
+            <h2 id="tituloFicheiro">Ficheiro alunos.txt</h2>
+            <p class="dica">Os dados ficam guardados neste browser. Descarrega o alunos.txt para guardar uma cópia, ou carrega um ficheiro para continuar noutro computador.</p>
+            <p class="dica">Cada linha: número;nome;sala;classe;turma;encarregado;ocorrência</p>
+            <div class="ficheiro-accoes">
+              <button type="button" class="btn btn--secundario" id="btnExportar">Descarregar alunos.txt</button>
+              <input type="file" id="ficheiroImportar" class="visualmente-oculto" accept=".txt,text/plain">
+              <label class="btn btn--secundario" for="ficheiroImportar">Carregar alunos.txt</label>
+            </div>
+          </section>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div class="aviso-zona" role="status" aria-live="polite">
+    <p class="aviso" id="aviso" hidden></p>
+  </div>
+
+</body>
+</html>

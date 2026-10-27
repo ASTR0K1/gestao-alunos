@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pesquisar alunos</title>
+  <link rel="stylesheet" href="css/estilo.css">
+  <script src="js/main.js" defer></script>
+</head>
+<body data-pagina="pesquisar" data-protegida>
+
+  <header class="topo">
+    <a class="marca" href="index.html">Gestão de alunos</a>
+    <nav class="menu" id="menu" aria-label="Principal" hidden>
+      <a href="index.html" data-nav="index">Início</a>
+      <a href="registrar.html" data-nav="registrar">Registar aluno</a>
+      <a href="pesquisar.html" data-nav="pesquisar">Pesquisar alunos</a>
+    </nav>
+    <div class="sessao" id="sessao" hidden>
+      <span id="nomeCoordenador"></span>
+      <button type="button" class="btn btn--pequeno btn--sair" id="btnSair">Sair</button>
+    </div>
+  </header>
+
+  <main class="mesa">
+    <div class="folha">
+      <h1>Pesquisar alunos</h1>
+      <p class="intro">Procura por nome, número do encarregado, sala ou ocorrência. Os resultados mudam enquanto escreves.</p>
+
+      <form id="formPesquisa" role="search" novalidate>
+        <div class="filtros">
+          <div class="campo">
+            <label for="q">Pesquisa</label>
+            <input id="q" type="search" autocomplete="off" placeholder="Ex.: Ana, 923 ou sala 12">
+          </div>
+          <div class="campo">
+            <label for="fClasse">Classe</label>
+            <select id="fClasse" data-classes>
+              <option value="">Todas as classes</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="fTurma">Turma</label>
+            <select id="fTurma">
+              <option value="">Todas as turmas</option>
+            </select>
+          </div>
+        </div>
+        <div class="filtros-extra">
+          <label class="verifica" for="soOcorrencia">
+            <input type="checkbox" id="soOcorrencia">
+            Só alunos com ocorrência
+          </label>
+          <button type="button" class="btn btn--secundario btn--pequeno" id="btnLimpar">Limpar filtros</button>
+        </div>
+      </form>
+
+      <p class="contagem" id="contagem" aria-live="polite"></p>
+
+      <div class="tabela-envolve" id="tabelaEnvolve">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Nº</th>
+              <th scope="col">Nome</th>
+              <th scope="col">Classe</th>
+              <th scope="col">Turma</th>
+              <th scope="col">Sala</th>
+              <th scope="col">Encarregado</th>
+              <th scope="col">Ocorrência</th>
+              <th scope="col"><span class="visualmente-oculto">Acções</span></th>
+            </tr>
+          </thead>
+          <tbody id="corpo"></tbody>
+        </table>
+      </div>
+
+      <div class="vazio" id="vazio" hidden>
+        <h2 id="vazioTitulo"></h2>
+        <p id="vazioTexto"></p>
+        <a class="btn" id="vazioLink" href="registrar.html" hidden>Registar aluno</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Editar aluno -->
+  <dialog id="dlgEditar" aria-labelledby="tituloEditar">
+    <div class="dialogo-corpo">
+      <h2 id="tituloEditar">Editar aluno</h2>
+      <form id="formEditar" class="formulario" novalidate>
+        <input type="hidden" name="alunoId">
+
+        <div class="campo" data-campo="nome">
+          <label for="e-nome">Nome completo</label>
+          <input id="e-nome" name="nome" type="text" autocomplete="off" maxlength="80">
+          <p class="erro" hidden></p>
+        </div>
+
+        <div class="campo campo--terco" data-campo="classe">
+          <label for="e-classe">Classe</label>
+          <select id="e-classe" name="classe" data-classes>
+            <option value="">Escolhe a classe</option>
+          </select>
+          <p class="erro" hidden></p>
+        </div>
+
+        <div class="campo campo--terco" data-campo="turma">
+          <label for="e-turma">Turma</label>
+          <input id="e-turma" name="turma" type="text" list="listaTurmas" autocomplete="off" maxlength="10">
+          <p class="erro" hidden></p>
+        </div>
+
+        <div class="campo campo--terco" data-campo="sala">
+          <label for="e-sala">Sala</label>
+          <input id="e-sala" name="sala" type="text" autocomplete="off" maxlength="10">
+          <p class="erro" hidden></p>
+        </div>
+
+        <div class="campo campo--meio" data-campo="encarregado">
+          <label for="e-encarregado">Número do encarregado</label>
+          <input id="e-encarregado" name="encarregado" type="tel" inputmode="tel" autocomplete="off">
+          <p class="erro" hidden></p>
+        </div>
+
+        <div class="campo" data-campo="ocorrencia">
+          <label for="e-ocorrencia">Ocorrência ou problema na escola</label>
+          <textarea id="e-ocorrencia" name="ocorrencia" maxlength="500"></textarea>
+          <p class="erro" hidden></p>
+        </div>
+
+        <div class="accoes">
+          <button type="submit" class="btn">Guardar alterações</button>
+          <button type="button" class="btn btn--secundario" data-fechar>Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Apagar aluno -->
+  <dialog id="dlgApagar" aria-labelledby="tituloApagar">
+    <div class="dialogo-corpo">
+      <h2 id="tituloApagar">Apagar aluno</h2>
+      <p>Vais apagar <strong id="nomeApagar"></strong> e todos os seus dados. Esta acção não pode ser desfeita.</p>
+      <div class="accoes">
+        <button type="button" class="btn btn--perigo" id="btnConfirmarApagar">Apagar aluno</button>
+        <button type="button" class="btn btn--secundario" data-fechar>Cancelar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <datalist id="listaTurmas"></datalist>
+
+  <div class="aviso-zona" role="status" aria-live="polite">
+    <p class="aviso" id="aviso" hidden></p>
+  </div>
+
+</body>
+</html>
