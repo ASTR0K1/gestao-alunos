@@ -1,22 +1,22 @@
-"""Registar, editar e apagar alunos: valida os dados e grava no txt."""
+"""Registar, editar, apagar e restaurar alunos: valida os dados e grava no txt."""
 
 import config
 import ficheiro_alunos
-from utilitarios import (ErroValidacao, NaoEncontrado, limpar, normalizar,
-                         so_digitos, texto_de)
+from utilitarios import (ErroValidacao, NaoEncontrado, arrumar_nome, erro_de_nome,
+                         limpar, normalizar, so_digitos, texto_de)
 
 
-def validar_aluno(dados, alunos, id_actual=None):
+def validar_aluno(dados, alunos, id_actual=None, ao_restaurar=False):
     """Confere os dados vindos do formulário.
 
     Devolve o aluno já limpo (sem id) ou levanta ErroValidacao com uma
     mensagem por campo. `id_actual` serve na edição, para o aluno não ser
-    considerado repetido dele próprio.
+    considerado repetido dele próprio. `ao_restaurar` é menos exigente com o nome.
     """
     if not isinstance(dados, dict):
         raise ErroValidacao({}, "Pedido inválido.")
 
-    nome = limpar(dados.get("nome"))
+    nome = arrumar_nome(dados.get("nome"))
     turma = limpar(dados.get("turma")).upper()
     sala = limpar(dados.get("sala"))
     encarregado = so_digitos(dados.get("encarregado"))
@@ -28,10 +28,9 @@ def validar_aluno(dados, alunos, id_actual=None):
         classe = 0
 
     erros = {}
-    if len(nome) < 3:
-        erros["nome"] = "Escreve o nome completo do aluno, com pelo menos 3 letras."
-    elif len(nome) > config.MAX_NOME:
-        erros["nome"] = f"Usa no máximo {config.MAX_NOME} caracteres."
+    erro_nome = erro_de_nome(nome, estrito=not ao_restaurar)
+    if erro_nome:
+        erros["nome"] = erro_nome
 
     if not config.CLASSE_MINIMA <= classe <= config.CLASSE_MAXIMA:
         erros["classe"] = "Escolhe a classe do aluno."
@@ -100,9 +99,31 @@ def editar_aluno(id_aluno, dados):
 
 
 def apagar_aluno(id_aluno):
+    """Apaga o aluno e devolve os dados dele (para se poder desfazer)."""
     with ficheiro_alunos.BLOQUEIO:
         alunos = ficheiro_alunos.ler_alunos()
-        restantes = [a for a in alunos if a["id"] != id_aluno]
-        if len(restantes) == len(alunos):
+        apagado = next((a for a in alunos if a["id"] == id_aluno), None)
+        if apagado is None:
             raise NaoEncontrado()
-        ficheiro_alunos.gravar_alunos(restantes)
+        restantes = [a for a in alunos if a["id"] != id_aluno]
+        ficheiro_alunos.gravar_alunos(restantes, copia_obrigatoria=True)
+        return apagado
+
+
+def restaurar_aluno(dados):
+    """Volta a pôr um aluno apagado. Fica com o número que tinha, se ainda estiver livre."""
+    with ficheiro_alunos.BLOQUEIO:
+        alunos = ficheiro_alunos.ler_alunos()
+        aluno = validar_aluno(dados, alunos, ao_restaurar=True)
+        try:
+            id_original = int(texto_de(dados.get("id")))
+        except ValueError:
+            id_original = 0
+        usados = {a["id"] for a in alunos}
+        if id_original > 0 and id_original not in usados:
+            aluno["id"] = id_original
+        else:
+            aluno["id"] = ficheiro_alunos.proximo_id(alunos)
+        alunos.append(aluno)
+        ficheiro_alunos.gravar_alunos(alunos)
+        return aluno

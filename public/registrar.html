@@ -1,102 +1,42 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-AO">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Registar aluno</title>
+  <title>Registar aluno – Gestão de Alunos</title>
+  <meta name="theme-color" content="#1E3B35">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/bitter-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/atkinson-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/estilo.css">
-  <script src="js/main.js" defer></script>
+  <script type="module" src="js/main.js"></script>
 </head>
-<body data-pagina="registrar" data-protegida>
+<body data-pagina="registar">
   <a class="saltar" href="#conteudo">Saltar para o conteúdo</a>
 
-  <header class="topo">
-    <a class="marca" href="index.html">Gestão de alunos</a>
-    <nav class="menu" id="menu" aria-label="Principal" hidden>
-      <a href="index.html" data-nav="index">Início</a>
-      <a href="registrar.html" data-nav="registrar">Registar aluno</a>
-      <a href="pesquisar.html" data-nav="pesquisar">Pesquisar alunos</a>
-    </nav>
-    <div class="sessao" id="sessao" hidden>
-      <span id="nomeCoordenador"></span>
-      <button type="button" class="btn btn--pequeno btn--sair" id="btnSair">Sair</button>
-    </div>
-  </header>
+  <p id="aviso-js" class="aviso-js">
+    A carregar… Se esta mensagem não desaparecer, abre o site pelo endereço do servidor
+    (<strong>http://localhost:8000</strong>) em vez de abrir o ficheiro com um duplo clique.
+  </p>
+  <noscript><p class="aviso-js">Este site precisa de JavaScript. Ativa-o no teu browser.</p></noscript>
 
-  <main class="mesa" id="conteudo" tabindex="-1">
-    <div class="folha">
-      <h1>Registar aluno</h1>
-      <p class="intro">Preenche os dados do aluno. A ocorrência é opcional.</p>
+  <header class="topo" id="topo" hidden></header>
 
-      <p class="nota nota--ok" id="sucesso" role="status" hidden>
-        <span id="sucessoTexto"></span>
-        <a id="sucessoFicha" href="pesquisar.html">Ver ficha</a>
-      </p>
+  <main id="conteudo" class="pagina" tabindex="-1" hidden>
+    <h1 class="titulo-pagina">Registar aluno</h1>
 
-      <form id="formRegistar" class="formulario" novalidate>
-        <div class="campo" data-campo="nome">
-          <label for="r-nome">Nome completo</label>
-          <input id="r-nome" name="nome" type="text" autocomplete="off" maxlength="80">
-          <p class="erro" hidden></p>
-        </div>
+    <div class="registo-grelha">
+      <section class="registo-formulario" aria-labelledby="titulo-dados">
+        <h2 id="titulo-dados" class="fora-do-ecra">Dados do aluno</h2>
+        <div id="formulario"></div>
+      </section>
 
-        <div class="campo campo--terco" data-campo="classe">
-          <label for="r-classe">Classe</label>
-          <select id="r-classe" name="classe" data-classes>
-            <option value="">Escolhe a classe</option>
-          </select>
-          <p class="erro" hidden></p>
-        </div>
-
-        <div class="campo campo--terco" data-campo="turma">
-          <label for="r-turma">Turma</label>
-          <input id="r-turma" name="turma" type="text" list="listaTurmas" autocomplete="off" maxlength="10">
-          <p class="erro" hidden></p>
-        </div>
-
-        <div class="campo campo--terco" data-campo="sala">
-          <label for="r-sala">Sala</label>
-          <input id="r-sala" name="sala" type="text" autocomplete="off" maxlength="10">
-          <p class="erro" hidden></p>
-        </div>
-
-        <p class="info-turma" id="infoTurma" aria-live="polite"></p>
-
-        <div class="campo campo--meio" data-campo="encarregado">
-          <label for="r-encarregado">Número do encarregado</label>
-          <input id="r-encarregado" name="encarregado" type="tel" inputmode="tel" autocomplete="off" placeholder="923 456 789" aria-describedby="r-encarregado-dica">
-          <p class="dica" id="r-encarregado-dica">Telefone com 9 dígitos.</p>
-          <p class="erro" hidden></p>
-        </div>
-
-        <div class="campo" data-campo="ocorrencia">
-          <label for="r-ocorrencia">Ocorrência ou problema na escola</label>
-          <textarea id="r-ocorrencia" name="ocorrencia" maxlength="500" aria-describedby="r-ocorrencia-dica"></textarea>
-          <div class="linha-contador">
-            <p class="dica" id="r-ocorrencia-dica">Opcional. Escreve o que aconteceu e quando.</p>
-            <p class="dica contador" data-contador-de="r-ocorrencia" aria-hidden="true">0/500</p>
-          </div>
-          <p class="erro" hidden></p>
-        </div>
-
-        <label class="verifica" for="manter">
-          <input type="checkbox" id="manter" checked>
-          Manter a classe, turma e sala para o aluno seguinte
-        </label>
-
-        <div class="accoes">
-          <button type="submit" class="btn" id="btnRegistar">Registar aluno</button>
-          <a class="btn btn--secundario" href="pesquisar.html">Ver alunos registados</a>
-        </div>
-      </form>
-
-      <datalist id="listaTurmas"></datalist>
+      <aside id="previa" class="registo-previa" aria-label="A ficha do aluno, a ser preenchida">
+        <h2 class="previa-titulo">A ficha</h2>
+      </aside>
     </div>
   </main>
 
-  <div class="aviso-zona" role="status" aria-live="polite">
-    <p class="aviso" id="aviso" hidden></p>
-  </div>
-
+  <div id="gate" class="gate" hidden></div>
 </body>
 </html>

@@ -1,137 +1,51 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-AO">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gestão de alunos</title>
+  <title>Painel – Gestão de Alunos</title>
+  <meta name="theme-color" content="#1E3B35">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/bitter-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/atkinson-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/estilo.css">
-  <script src="js/main.js" defer></script>
+  <script type="module" src="js/main.js"></script>
 </head>
-<body data-pagina="index">
+<body data-pagina="painel">
   <a class="saltar" href="#conteudo">Saltar para o conteúdo</a>
 
-  <header class="topo">
-    <a class="marca" href="index.html">Gestão de alunos</a>
-    <nav class="menu" id="menu" aria-label="Principal" hidden>
-      <a href="index.html" data-nav="index">Início</a>
-      <a href="registrar.html" data-nav="registrar">Registar aluno</a>
-      <a href="pesquisar.html" data-nav="pesquisar">Pesquisar alunos</a>
-    </nav>
-    <div class="sessao" id="sessao" hidden>
-      <span id="nomeCoordenador"></span>
-      <button type="button" class="btn btn--pequeno btn--sair" id="btnSair">Sair</button>
-    </div>
-  </header>
+  <p id="aviso-js" class="aviso-js">
+    A carregar… Se esta mensagem não desaparecer, abre o site pelo endereço do servidor
+    (<strong>http://localhost:8000</strong>) em vez de abrir o ficheiro index.html com um duplo clique.
+  </p>
+  <noscript><p class="aviso-js">Este site precisa de JavaScript. Ativa-o no teu browser.</p></noscript>
 
-  <main class="mesa" id="conteudo" tabindex="-1">
-    <div class="folha">
+  <header class="topo" id="topo" hidden></header>
 
-      <!-- Primeiro acesso: criar o coordenador -->
-      <section id="ecraCriar" class="ecra-estreito" hidden>
-        <h1>Criar acesso do coordenador</h1>
-        <p class="intro">Só o coordenador regista, pesquisa e altera os dados dos alunos. Escolhe o teu nome e um código de acesso.</p>
+  <main id="conteudo" class="pagina" tabindex="-1" hidden>
+    <header class="pagina-cabeca">
+      <h1 id="saudacao" class="titulo-pagina">Painel</h1>
 
-        <form id="formCriar" class="formulario" novalidate>
-          <div class="campo" data-campo="nome">
-            <label for="c-nome">Nome do coordenador</label>
-            <input id="c-nome" name="nome" type="text" autocomplete="name" maxlength="60">
-            <p class="erro" hidden></p>
-          </div>
-          <div class="campo" data-campo="codigo">
-            <label for="c-codigo">Código de acesso</label>
-            <input id="c-codigo" name="codigo" type="password" autocomplete="new-password" maxlength="64" aria-describedby="c-codigo-dica">
-            <p class="dica" id="c-codigo-dica">Pelo menos 6 caracteres.</p>
-            <p class="erro" hidden></p>
-          </div>
-          <div class="campo" data-campo="repetir">
-            <label for="c-repetir">Repetir o código</label>
-            <input id="c-repetir" name="repetir" type="password" autocomplete="new-password" maxlength="64">
-            <p class="erro" hidden></p>
-          </div>
-          <label class="verifica" for="c-mostrar">
-            <input type="checkbox" id="c-mostrar" data-mostrar="#c-codigo,#c-repetir">
-            Mostrar o código
-          </label>
-          <div class="accoes">
-            <button type="submit" class="btn" id="btnCriar">Criar acesso</button>
-          </div>
-        </form>
-
-        <details>
-          <summary>Onde fica guardado o código?</summary>
-          <p>No servidor, no ficheiro bd/coordenador.txt, de forma cifrada: não dá para ler o código a partir dele. Se o esqueceres, quem tem acesso ao servidor apaga esse ficheiro e cria-se um acesso novo. Os alunos não são afectados.</p>
-        </details>
-      </section>
-
-      <!-- Acessos seguintes: entrar -->
-      <section id="ecraEntrar" class="ecra-estreito" hidden>
-        <h1>Entrar como coordenador</h1>
-        <p class="nota" id="avisoSessao" role="status" hidden>A tua sessão terminou. Entra outra vez.</p>
-        <p class="intro">Escreve o teu código de acesso para gerir os alunos.</p>
-
-        <form id="formEntrar" class="formulario" novalidate>
-          <div class="campo" data-campo="codigo">
-            <label for="l-codigo">Código de acesso</label>
-            <input id="l-codigo" name="codigo" type="password" autocomplete="current-password" maxlength="64">
-            <p class="erro" hidden></p>
-          </div>
-          <label class="verifica" for="l-mostrar">
-            <input type="checkbox" id="l-mostrar" data-mostrar="#l-codigo">
-            Mostrar o código
-          </label>
-          <div class="accoes">
-            <button type="submit" class="btn" id="btnEntrar">Entrar</button>
-          </div>
-        </form>
-
-        <details>
-          <summary>Esqueci o código</summary>
-          <p>O código não se recupera por aqui. Quem tem acesso ao servidor apaga o ficheiro bd/coordenador.txt e cria-se um acesso novo. Os alunos não são afectados.</p>
-        </details>
-      </section>
-
-      <!-- Painel do coordenador -->
-      <section id="painel" hidden>
-        <h1>Painel do coordenador</h1>
-        <p class="intro">Procura um aluno, regista um novo ou vê onde há ocorrências.</p>
-
-        <div class="barra-rapida">
-          <form class="pesquisa-rapida" action="pesquisar.html" method="get" role="search">
-            <label class="visualmente-oculto" for="pq">Procurar aluno</label>
-            <input id="pq" name="q" type="search" autocomplete="off" placeholder="Nome, número do encarregado ou sala">
-            <button type="submit" class="btn">Pesquisar</button>
-          </form>
-          <a class="btn btn--secundario" href="registrar.html">Registar aluno</a>
+      <form id="busca-painel" class="busca-grande" action="pesquisar.html" method="get" role="search">
+        <div class="busca-caixa">
+          <span data-icone="procurar"></span>
+          <label class="fora-do-ecra" for="busca-q">Procurar aluno</label>
+          <input id="busca-q" name="q" type="search" placeholder="Escreve um nome, um telefone ou «sala 12»"
+                 autocomplete="off" spellcheck="false" aria-describedby="busca-estado" data-busca-principal>
+          <button class="btn btn-primario" type="submit">Procurar</button>
         </div>
+        <p id="busca-estado" class="fora-do-ecra" role="status"></p>
+        <ul id="busca-lista" class="busca-lista" hidden></ul>
+      </form>
+    </header>
 
-        <ul class="numeros">
-          <li><a href="pesquisar.html"><strong id="nTotal">–</strong><span>alunos registados</span></a></li>
-          <li><a href="pesquisar.html?ocorrencia=1"><strong id="nOcorrencias">–</strong><span>com ocorrência</span></a></li>
-          <li><div class="numero-simples"><strong id="nTurmas">–</strong><span>turmas com alunos</span></div></li>
-        </ul>
-
-        <div class="duas-colunas">
-          <section aria-labelledby="tituloClasses">
-            <h2 id="tituloClasses">Alunos por classe</h2>
-            <ul class="por-classe" id="listaClasses"></ul>
-            <p class="dica" id="semAlunos" hidden>Ainda não há alunos registados. <a href="registrar.html">Regista o primeiro aluno.</a></p>
-          </section>
-
-          <section aria-labelledby="tituloOcorrencias">
-            <h2 id="tituloOcorrencias">Alunos com ocorrência</h2>
-            <ul class="lista-ocorrencias" id="listaOcorrencias"></ul>
-            <p class="dica" id="semOcorrencias" hidden>Nenhum aluno tem ocorrência registada.</p>
-            <a id="linkTodas" href="pesquisar.html?ocorrencia=1" hidden>Ver todos os alunos com ocorrência</a>
-          </section>
-        </div>
-      </section>
-
+    <div id="painel-conteudo" class="painel-conteudo">
+      <div class="esqueleto-lista" aria-hidden="true">
+        <div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div>
+      </div>
     </div>
   </main>
 
-  <div class="aviso-zona" role="status" aria-live="polite">
-    <p class="aviso" id="aviso" hidden></p>
-  </div>
-
+  <div id="gate" class="gate" hidden></div>
 </body>
 </html>

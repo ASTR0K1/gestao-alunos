@@ -14,6 +14,7 @@ import mimetypes
 import re
 import sys
 import traceback
+import webbrowser
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, unquote, urlsplit
@@ -23,6 +24,21 @@ import coordenador
 import pesquisar
 import registar
 from utilitarios import ErroValidacao, NaoEncontrado
+
+TIPOS_DE_FICHEIRO = {
+    ".html": "text/html; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".txt": "text/plain; charset=utf-8",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".ico": "image/x-icon",
+    ".webp": "image/webp",
+    ".woff2": "font/woff2",
+}
 
 NOME_COOKIE = "sessao"
 ROTA_ALUNO = re.compile(r"^/api/alunos/(\d{1,9})$")
@@ -49,7 +65,7 @@ def _inteiro(valor, padrao, minimo=None, maximo=None):
 
 
 class Manipulador(BaseHTTPRequestHandler):
-    server_version = "GestaoAlunos/1.0"
+    server_version = "GestaoAlunos/2.0"
 
     # ---------------------------------------------------------------- entrada
 
@@ -80,17 +96,23 @@ class Manipulador(BaseHTTPRequestHandler):
             self._json(404, {"erro": "Aluno não encontrado."})
         except (BrokenPipeError, ConnectionResetError):
             pass
+        except OSError:
+            # Quase sempre é o alunos.txt aberto noutro programa (o Excel, por exemplo)
+            traceback.print_exc()
+            self._json(503, {"erro": "Não foi possível guardar no ficheiro alunos.txt. "
+                                     "Fecha os outros programas que o estejam a usar e tenta outra vez. "
+                                     "Nada foi alterado."})
         except Exception:
             traceback.print_exc()
             self._json(500, {"erro": "Erro interno do servidor."})
 
     # -------------------------------------------------------------- respostas
 
-    def _enviar(self, estado, corpo, tipo, extra=None):
+    def _enviar(self, estado, corpo, tipo, extra=None, cache="no-store"):
         self.send_response(estado)
         self.send_header("Content-Type", tipo)
         self.send_header("Content-Length", str(len(corpo)))
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Cache-Control", cache)
         for nome, valor in CABECALHOS_DE_SEGURANCA.items():
             self.send_header(nome, valor)
         for nome, valor in (extra or {}).items():
@@ -187,6 +209,19 @@ class Manipulador(BaseHTTPRequestHandler):
             self._json(200, pesquisar.info_turma(classe, turma))
             return
 
+        if caminho == "/api/semelhantes" and metodo == "GET":
+            self._json(200, {"semelhantes": pesquisar.semelhantes(
+                consulta.get("nome", [""])[0][:config.MAX_NOME * 2],
+                _inteiro(consulta.get("classe", [""])[0], None),
+                consulta.get("turma", [""])[0].strip().upper(),
+                _inteiro(consulta.get("ignorar", [""])[0], None),
+            )})
+            return
+
+        if caminho == "/api/restaurar" and metodo == "POST":
+            self._json(201, registar.restaurar_aluno(self._corpo_json()))
+            return
+
         if caminho == "/api/alunos":
             if metodo == "GET":
                 self._listar_alunos(consulta)
@@ -204,8 +239,7 @@ class Manipulador(BaseHTTPRequestHandler):
             elif metodo == "PUT":
                 self._json(200, registar.editar_aluno(id_aluno, self._corpo_json()))
             elif metodo == "DELETE":
-                registar.apagar_aluno(id_aluno)
-                self._json(200, {"ok": True})
+                self._json(200, {"ok": True, "aluno": registar.apagar_aluno(id_aluno)})
             else:
                 self._json(405, {"erro": "Método não permitido."})
             return
@@ -265,26 +299,50 @@ class Manipulador(BaseHTTPRequestHandler):
             self._enviar(404, "Página não encontrada.".encode("utf-8"), "text/plain; charset=utf-8")
             return
 
-        tipo = mimetypes.guess_type(alvo.name)[0] or "application/octet-stream"
-        if tipo.startswith("text/") or tipo in ("application/javascript", "application/json"):
-            tipo += "; charset=utf-8"
-        self._enviar(200, alvo.read_bytes(), tipo)
+        # Os tipos principais ficam fixos aqui. No Windows o Python lê-os do registo do
+        # sistema, onde o ".js" pode estar como texto simples, e o browser recusa-se a
+        # executar scripts servidos assim (por causa do cabeçalho nosniff).
+        tipo = TIPOS_DE_FICHEIRO.get(alvo.suffix.lower())
+        if tipo is None:
+            tipo = mimetypes.guess_type(alvo.name)[0] or "application/octet-stream"
+        # As letras não mudam: ficam guardadas uma semana no browser. O resto (html, css,
+        # js) é pedido sempre, para uma actualização do site aparecer logo.
+        cache = "public, max-age=604800" if alvo.suffix.lower() == ".woff2" else "no-store"
+        self._enviar(200, alvo.read_bytes(), tipo, cache=cache)
 
     def log_message(self, formato, *argumentos):
         sys.stderr.write("%s  %s\n" % (self.log_date_time_string(), formato % argumentos))
 
 
+class Servidor(ThreadingHTTPServer):
+    # Por omissão a fila de espera só aceita 5 ligações ao mesmo tempo; as outras eram recusadas.
+    request_queue_size = 128
+    daemon_threads = True
+
+
 def main():
     config.PASTA_BD.mkdir(parents=True, exist_ok=True)
     try:
-        servidor = ThreadingHTTPServer((config.ENDERECO, config.PORTA), Manipulador)
+        servidor = Servidor((config.ENDERECO, config.PORTA), Manipulador)
     except OSError as erro:
         print(f"Não foi possível usar a porta {config.PORTA}: {erro}")
-        print("Fecha o outro programa que a usa, ou escolhe outra porta:  ALUNOS_PORTA=8001 python3 src/servidor.py")
+        print(f"Provavelmente o servidor já está a funcionar noutra janela: abre http://localhost:{config.PORTA} no browser.")
+        print("Se não for isso, fecha o outro programa que usa a porta ou escolhe outra:")
+        print("  Windows (PowerShell):  $env:ALUNOS_PORTA=\"8001\"; python src\\servidor.py")
+        print("  Linux / Mac:           ALUNOS_PORTA=8001 python3 src/servidor.py")
         sys.exit(1)
 
     print(f"Gestão de alunos a funcionar em http://{config.ENDERECO}:{config.PORTA}")
     print("Para parar: Ctrl+C")
+
+    # No Windows e no Mac abre o site sozinho. A porta já está reservada, por isso o
+    # browser fica à espera do servidor arrancar. (No Linux não se abre: sem ambiente
+    # gráfico o Python podia lançar um browser de texto dentro do terminal.)
+    if sys.platform in ("win32", "darwin"):
+        try:
+            webbrowser.open(f"http://localhost:{config.PORTA}")
+        except Exception:
+            pass
     try:
         servidor.serve_forever()
     except KeyboardInterrupt:

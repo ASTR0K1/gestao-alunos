@@ -10,6 +10,13 @@ PASTA_PUBLIC = PASTA_BASE / "public"
 
 FICHEIRO_ALUNOS = PASTA_BD / "alunos.txt"
 FICHEIRO_COORDENADOR = PASTA_BD / "coordenador.txt"
+PASTA_COPIAS = PASTA_BD / "copias"
+
+# --- Cópias de segurança do alunos.txt ----------------------------------------
+# Antes de cada alteração guarda-se uma cópia em bd/copias/. Para não encher a pasta
+# durante um registo seguido, faz-se no máximo uma por minuto (excepto antes de apagar).
+MAX_COPIAS = 50
+INTERVALO_COPIAS = 60            # segundos
 
 # --- Formato do alunos.txt --------------------------------------------------
 # Cada linha: id;nome;sala;classe;turma;encarregado;ocorrencia

@@ -1,0 +1,8 @@
+# Deixa o Git tratar das mudanças de linha (Windows / Linux / Mac)
+* text=auto
+
+# O .bat do Windows tem de ficar sempre com linhas do Windows
+*.bat text eol=crlf
+
+# Ficheiros que não são texto
+*.woff2 binary

@@ -1,0 +1,13 @@
+# Dados dos alunos: ficam só no computador do coordenador, nunca no GitHub
+bd/*
+!bd/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+
+# Editores e sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
